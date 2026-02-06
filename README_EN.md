@@ -49,4 +49,8 @@ An agent is not a thinking entity; it is a **Prompt Orchestrator**. "Personality
 This demo proves that with a user interface and an API, a network of persistent identities can be created that appears intelligent, while underneath it is pure traditional software engineering.
 
 ---
+## 📄 License
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+
+---
 *This project is an educational tool for developers and enthusiasts of the AI ecosystem.*

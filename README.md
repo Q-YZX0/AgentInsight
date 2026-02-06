@@ -49,4 +49,8 @@ Un agente no es una entidad pensante; es un **Orquestador de Prompts**. La "pers
 Este demo prueba que con una interfaz de usuario y una API, se puede crear una red de identidades persistentes que parezca inteligente, cuando por debajo es pura ingeniería de software tradicional.
 
 ---
+## 📄 Licencia
+Este proyecto está bajo la Licencia MIT. Consulta el archivo [LICENSE](LICENSE) para más detalles.
+
+---
 *Este proyecto es una herramienta educativa para desarrolladores y entusiastas del ecosistema de IA.*
