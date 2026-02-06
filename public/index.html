@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agent Simulator | Demistificando la IA</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0a0a0c;
+            --panel: #16161a;
+            --accent: #00f2ff;
+            --text: #e0e0e0;
+            --subtext: #94a3b8;
+            --border: rgba(255, 255, 255, 0.1);
+            --success: #10b981;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .lang-switcher {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .lang-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border);
+            color: var(--subtext);
+            padding: 5px 12px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .lang-btn.active {
+            border-color: var(--accent);
+            color: var(--accent);
+            background: rgba(0, 242, 255, 0.1);
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 60px;
+            animation: fadeInDown 0.8s ease-out;
+            position: relative;
+        }
+
+        h1 {
+            font-size: 3rem;
+            font-weight: 600;
+            background: linear-gradient(135deg, #fff 0%, var(--accent) 100%);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-fill-color: transparent;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: var(--subtext);
+            font-size: 1.1rem;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        @media (max-width: 900px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* --- Panel Styles --- */
+        .panel {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 25px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+            transition: transform 0.3s ease;
+        }
+
+        .panel:hover {
+            transform: translateY(-5px);
+            border-color: rgba(0, 242, 255, 0.3);
+        }
+
+        .panel-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .panel-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--success);
+            border-radius: 50%;
+            display: inline-block;
+            box-shadow: 0 0 10px var(--success);
+            animation: pulse 2s infinite;
+        }
+
+        /* --- Feed Section --- */
+        .feed {
+            max-height: 600px;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+
+        .feed::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .feed::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .feed::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 10px;
+        }
+
+        .post {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            animation: slideIn 0.5s ease-out backwards;
+        }
+
+        .post-author {
+            font-weight: 600;
+            color: var(--accent);
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .post-content {
+            font-size: 1rem;
+            color: #ccc;
+        }
+
+        .comment-thread {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px dashed var(--border);
+        }
+
+        .comment {
+            background: rgba(0, 242, 255, 0.05);
+            border-left: 2px solid var(--accent);
+            padding: 10px 15px;
+            border-radius: 4px;
+            margin-top: 10px;
+            font-style: italic;
+            font-size: 0.95rem;
+        }
+
+        .comment-author {
+            font-weight: 600;
+            color: var(--accent);
+            margin-right: 8px;
+        }
+
+        /* --- Terminal / Log Section --- */
+        .terminal {
+            background: #000;
+            font-family: 'JetBrains Mono', monospace;
+            padding: 20px;
+            border-radius: 12px;
+            height: 400px;
+            overflow-y: auto;
+            font-size: 0.85rem;
+            color: #d1d5db;
+        }
+
+        .log-line {
+            margin-bottom: 8px;
+            opacity: 0.9;
+        }
+
+        .log-time {
+            color: #6b7280;
+            margin-right: 10px;
+        }
+
+        .log-info {
+            color: #60a5fa;
+        }
+
+        .log-think {
+            color: #fbbf24;
+            font-style: italic;
+        }
+
+        .log-action {
+            color: var(--success);
+            font-weight: 600;
+        }
+
+        /* --- Controls --- */
+        .controls {
+            margin-top: 30px;
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        button {
+            background: transparent;
+            border: 1px solid var(--accent);
+            color: var(--accent);
+            padding: 12px 24px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            background: var(--accent);
+            color: var(--bg);
+            box-shadow: 0 0 20px rgba(0, 242, 255, 0.4);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* --- Animations --- */
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(0.95);
+                opacity: 0.7;
+            }
+
+            50% {
+                transform: scale(1.05);
+                opacity: 1;
+            }
+
+            100% {
+                transform: scale(0.95);
+                opacity: 0.7;
+            }
+        }
+
+        /* --- Tooltip --- */
+        .info-card {
+            margin-top: 40px;
+            background: rgba(255, 255, 255, 0.02);
+            padding: 20px;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            color: var(--subtext);
+            border: 1px solid var(--border);
+        }
+
+        .info-card strong {
+            color: var(--accent);
+        }
+
+        /* --- Modal Styles --- */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(5px);
+            z-index: 1000;
+            overflow-y: auto;
+            padding: 40px 20px;
+        }
+
+        .modal-content {
+            background: var(--panel);
+            max-width: 700px;
+            margin: 0 auto;
+            border-radius: 20px;
+            padding: 30px;
+            border: 1px solid var(--border);
+            position: relative;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 15px;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            color: var(--subtext);
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--accent);
+            font-size: 0.9rem;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 10px 15px;
+            color: white;
+            font-family: inherit;
+        }
+
+        .agent-config-item {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border);
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            position: relative;
+        }
+
+        .remove-agent {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            color: #ff4d4d;
+            cursor: pointer;
+            font-size: 0.8rem;
+            border: none;
+            padding: 5px 10px;
+        }
+
+        .add-agent-btn {
+            width: 100%;
+            margin-bottom: 20px;
+            border-style: dashed;
+        }
+
+        .save-btn {
+            width: 100%;
+            background: var(--accent) !important;
+            color: var(--bg) !important;
+        }
+
+        .settings-trigger {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            z-index: 100;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <div class="lang-switcher">
+                <button class="lang-btn active" onclick="changeLanguage('es')">ES</button>
+                <button class="lang-btn" onclick="changeLanguage('en')">EN</button>
+            </div>
+            <h1 data-i18n="title">Agent Insight</h1>
+            <p class="subtitle" data-i18n="subtitle">Desmitificando el funcionamiento de los agentes autónomos</p>
+        </header>
+        <div class="info-card">
+            <p><strong data-i18n="info_cfg_title">Configuración:</strong> <span data-i18n="info_cfg_text">Este simulador
+                    está en MODO DEMO (usando respuestas predefinidad). Para activar el MODO REAL, abre la configuración
+                    y añade tu API_KEY de OpenAI (o compatible). Puedes personalizar las personalidades, metas e
+                    intereses de cada agente directamente en el panel para ver cómo cambia su comportamiento.</span></p>
+            <br>
+            <p><strong data-i18n="info_what_title">¿Qué es esto?</strong> <span data-i18n="info_what_text">Esta
+                    simulación muestra el ciclo de vida de un agente: 1. Escuchar el feed (Grafo Social), 2. Procesar
+                    con un LLM usando un "System Prompt" detallado, 3. Decidir probabilísticamente si interactuar para
+                    evitar spam, y 4. Insertar un nuevo nodo en la red. No hay magia, solo código y modelos de
+                    lenguaje.</span></p>
+        </div>
+        <div class="grid">
+            <!-- Feed Panel -->
+            <div class="panel">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        <span class="status-dot"></span>
+                        <span data-i18n="feed_title">Feed (Simulado)</span>
+                    </div>
+                </div>
+                <div id="feed" class="feed">
+                    <!-- Posts dynamically inserted here -->
+                </div>
+            </div>
+
+            <!-- Agent Logic Panel -->
+            <div class="panel">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        <span data-i18n="brain_log">🧠 Brain Log: Agente</span>
+                    </div>
+                    <div class="panel-title-identity"></div>
+                </div>
+                <div id="terminal" class="terminal">
+                </div>
+                <div class="controls">
+                    <button id="start-btn" onclick="startSimulation()" data-i18n="start_btn">Iniciar Simulación</button>
+                </div>
+            </div>
+        </div>
+
+
+    </div>
+
+    <!-- Settings Trigger -->
+    <button class="settings-trigger" onclick="toggleModal('settings-modal')">⚙️</button>
+
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 data-i18n="settings_title">⚙️ Configuración del Cerebro</h2>
+                <button class="close-btn" onclick="toggleModal('settings-modal')">&times;</button>
+            </div>
+
+            <div class="form-group">
+                <label data-i18n="label_api_key">API Key (OpenAI / Compatible)</label>
+                <input type="password" id="cfg-api-key" placeholder="sk-...">
+            </div>
+
+            <div class="grid" style="grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 0; margin-bottom: 20px;">
+                <div class="form-group">
+                    <label data-i18n="label_model">Modelo LLM</label>
+                    <input type="text" id="cfg-model" value="gpt-4-turbo">
+                </div>
+                <div class="form-group">
+                    <label data-i18n="label_mode">Modo de Funcionamiento</label>
+                    <select id="cfg-demo-mode">
+                        <option value="true" data-i18n="opt_demo">MODO DEMO (Mocks)</option>
+                        <option value="false" data-i18n="opt_real">MODO REAL (API)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="grid" style="grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 0; margin-bottom: 20px;">
+                <div class="form-group">
+                    <label data-i18n="label_interval">Frecuencia Publicación (ms)</label>
+                    <input type="number" id="cfg-publish-interval" value="12000" step="1000">
+                </div>
+                <div class="form-group">
+                    <label data-i18n="label_chance">Probabilidad de Respuesta (0-1)</label>
+                    <input type="number" id="cfg-response-chance" value="0.4" step="0.1" min="0" max="1">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label data-i18n="label_url">API URL Endpoint</label>
+                <input type="text" id="cfg-api-url" value="https://api.openai.com/v1/chat/completions">
+            </div>
+
+            <div class="modal-header" style="margin-top: 40px;">
+                <h3 data-i18n="agents_mgmt">🤖 Gestión de Agentes</h3>
+            </div>
+
+            <div id="agents-config-list">
+                <!-- Agent fields will be injected here -->
+            </div>
+
+            <button class="add-agent-btn" onclick="addAgentField()" data-i18n="add_agent">+ Añadir Nuevo Agente</button>
+
+            <button class="save-btn" onclick="saveConfiguration()" data-i18n="save_btn">Guardar y Reiniciar
+                Simulación</button>
+        </div>
+    </div>
+
+    <script src="i18n.js"></script>
+    <script src="script.js"></script>
+    <script src="config.js"></script>
+</body>
+
+</html>
